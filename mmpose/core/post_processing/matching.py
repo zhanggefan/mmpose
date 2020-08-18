@@ -32,9 +32,10 @@ def candidate_reselect(bboxes, pose_preds, num_joints, img, box_scores,
 
     # Generate Matrix
     num_person = len(pose_preds.keys())
+
     costMatrix = [
         np.zeros((num_person, len(kp_group)), dtype=np.float)
-        for kp_group in kp_groups
+        for kp_group in kp_groups.values()
     ]
 
     for h_id, person in pose_preds.items():
