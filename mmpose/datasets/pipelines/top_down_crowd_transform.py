@@ -37,7 +37,7 @@ class TopDownCrowdRandomFlip(object):
 
         results['data_numpy'] = img
         results['joints_3d'] = joints_3d
-        results['joints_3d_vis'] = joints_3d_visible
+        results['joints_3d_visible'] = joints_3d_visible
         results['interference_joints'] = interference_joints
         results['center'] = center
 
