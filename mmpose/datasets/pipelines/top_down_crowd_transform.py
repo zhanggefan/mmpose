@@ -225,7 +225,7 @@ class TopDownCrowdGenerateTarget():
                 br = [int(mu_x + tmp_size + 1), int(mu_y + tmp_size + 1)]
                 if ul[0] >= heatmap_size[0] or ul[1] >= heatmap_size[1] or br[
                         0] < 0 or br[1] < 0:
-                    break
+                    continue
                 if target_weight[joint_id] > 0.5:
                     size = 2 * tmp_size + 1
                     x = np.arange(0, size, 1, np.float32)
