@@ -1,6 +1,6 @@
 # Model Zoo
 
-### Pretrained backbones on ImageNet
+## Pretrained backbones on ImageNet
 
 | Model |  Checkpoint |  Download |
 | :----------------- | :-----------: | :-----------: |
