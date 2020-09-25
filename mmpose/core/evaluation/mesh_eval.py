@@ -12,14 +12,11 @@ def compute_similarity_transform(source_points, target_points):
     is an 3x3 rotation matrix, t 3x1 translation, s scale. And return the
     transformed 3D points source_points_hat (N x 3). i.e. solves the orthogonal
     Procrutes problem.
-
     Notes:
         Points number: N
-
     Args:
         source_points (np.ndarray([N, 3])): Source point set.
         target_points (np.ndarray([N, 3])): Target point set.
-
     Returns:
         source_points_hat (np.ndarray([N, 3])): Transformed source point set.
     """
