@@ -212,7 +212,7 @@ class FullPoseDiscriminator(LinearModel):
         return self.fc_blocks(inputs)
 
 
-class Discriminator(nn.Module):
+class SMPLDiscriminator(nn.Module):
     """Discriminator for SMPL pose and shape parameters.
 
     It is composed of a discriminator for SMPL shape parameters,  a
@@ -221,7 +221,7 @@ class Discriminator(nn.Module):
     """
 
     def __init__(self):
-        super(Discriminator, self).__init__()
+        super(SMPLDiscriminator, self).__init__()
         self.beta_count = 10
         self._create_sub_modules()
 

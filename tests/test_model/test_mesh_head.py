@@ -2,6 +2,7 @@ import numpy as np
 import torch
 
 from mmpose.models import MeshHMRHead
+from mmpose.models.mesh_heads.discriminator import SMPLDiscriminator
 
 
 def test_mesh_hmr_head():
@@ -16,7 +17,7 @@ def test_mesh_hmr_head():
     assert smpl_rotmat.shape == torch.Size([1, 24, 3, 3])
     assert smpl_shape.shape == torch.Size([1, 10])
     assert camera.shape == torch.Size([1, 3])
-    """Test hmr mesh head."""
+    """Test hmr mesh head with assigned mean parameters and n_iter """
     head = MeshHMRHead(
         in_channels=512,
         smpl_mean_params='tests/data/smpl/smpl_mean_params.npz',
@@ -29,6 +30,19 @@ def test_mesh_hmr_head():
     assert smpl_rotmat.shape == torch.Size([1, 24, 3, 3])
     assert smpl_shape.shape == torch.Size([1, 10])
     assert camera.shape == torch.Size([1, 3])
+
+    # test discriminator with SMPL pose parameters
+    # in rotation matrix representation
+    disc = SMPLDiscriminator()
+    pred_theta = (camera, smpl_rotmat, smpl_shape)
+    pred_score = disc(pred_theta)
+    assert pred_score.shape[1] == 25
+
+    # test discriminator with SMPL pose parameters
+    # in axis-angle representation
+    pred_theta = (camera, camera.new_zeros([1, 72]), smpl_shape)
+    pred_score = disc(pred_theta)
+    assert pred_score.shape[1] == 25
 
 
 def _demo_inputs(input_shape=(1, 3, 64, 64)):
