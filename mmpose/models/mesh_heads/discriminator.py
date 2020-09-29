@@ -3,7 +3,7 @@
 # Original licence: Copyright (c) 2018 akanazawa, under the MIT License.
 # ------------------------------------------------------------------------------
 
-import sys
+from abc import abstractmethod
 
 import torch
 import torch.nn as nn
@@ -26,54 +26,47 @@ class LinearModel(nn.Module):
     """
 
     def __init__(self, fc_layers, use_dropout, drop_prob, use_ac_func):
-        super(LinearModel, self).__init__()
+        super().__init__()
         self.fc_layers = fc_layers
         self.use_dropout = use_dropout
         self.drop_prob = drop_prob
         self.use_ac_func = use_ac_func
 
         if not self._check():
-            msg = 'wrong LinearModel parameters!'
-            print(msg)
-            sys.exit(msg)
+            msg = 'Wrong LinearModel parameters!'
+            raise ValueError(msg)
 
         self.create_layers()
 
     def _check(self):
         """Check input to avoid ValueError."""
-        while True:
-            if not isinstance(self.fc_layers, list):
-                print('fc_layers require list, '
-                      'get {}'.format(type(self.fc_layers)))
-                break
+        if not isinstance(self.fc_layers, list):
 
-            if not isinstance(self.use_dropout, list):
-                print('use_dropout require list, '
-                      'get {}'.format(type(self.use_dropout)))
-                break
+            raise TypeError('fc_layers require list, get {}'.format(
+                type(self.fc_layers)))
 
-            if not isinstance(self.drop_prob, list):
-                print('drop_prob require list, '
-                      'get {}'.format(type(self.drop_prob)))
-                break
+        if not isinstance(self.use_dropout, list):
+            raise TypeError('use_dropout require list, get {}'.format(
+                type(self.use_dropout)))
 
-            if not isinstance(self.use_ac_func, list):
-                print('use_ac_func require list, '
-                      'get {}'.format(type(self.use_ac_func)))
-                break
+        if not isinstance(self.drop_prob, list):
+            raise TypeError('drop_prob require list, get {}'.format(
+                type(self.drop_prob)))
 
-            l_fc_layer = len(self.fc_layers)
-            l_use_drop = len(self.use_dropout)
-            l_drop_porb = len(self.drop_prob)
-            l_use_ac_func = len(self.use_ac_func)
+        if not isinstance(self.use_ac_func, list):
+            raise TypeError('use_ac_func require list, get {}'.format(
+                type(self.use_ac_func)))
 
-            return l_fc_layer >= 2 and \
-                l_use_drop < l_fc_layer and \
-                l_drop_porb < l_fc_layer and \
-                l_use_ac_func < l_fc_layer and \
-                l_drop_porb == l_use_drop
+        l_fc_layer = len(self.fc_layers)
+        l_use_drop = len(self.use_dropout)
+        l_drop_porb = len(self.drop_prob)
+        l_use_ac_func = len(self.use_ac_func)
 
-        return False
+        return l_fc_layer >= 2 and \
+            l_use_drop < l_fc_layer and \
+            l_drop_porb < l_fc_layer and \
+            l_use_ac_func < l_fc_layer and \
+            l_drop_porb == l_use_drop
 
     def create_layers(self):
         """Create layers."""
@@ -100,10 +93,11 @@ class LinearModel(nn.Module):
                     name='regressor_fc_dropout_{}'.format(_),
                     module=nn.Dropout(p=self.drop_prob[_]))
 
+    @abstractmethod
     def forward(self, inputs):
         """Forward function."""
         msg = 'the base class [LinearModel] is not callable!'
-        sys.exit(msg)
+        raise NotImplementedError(msg)
 
 
 class ShapeDiscriminator(LinearModel):
@@ -124,10 +118,9 @@ class ShapeDiscriminator(LinearModel):
         if fc_layers[-1] != 1:
             msg = 'the neuron count of the last layer' \
                   ' must be 1, but got {}'.format(fc_layers[-1])
-            sys.exit(msg)
+            raise ValueError(msg)
 
-        super(ShapeDiscriminator, self).__init__(fc_layers, use_dropout,
-                                                 drop_prob, use_ac_func)
+        super().__init__(fc_layers, use_dropout, drop_prob, use_ac_func)
 
     def forward(self, inputs):
         """Forward function."""
@@ -146,11 +139,11 @@ class PoseDiscriminator(nn.Module):
     """
 
     def __init__(self, channels, joint_count):
-        super(PoseDiscriminator, self).__init__()
+        super().__init__()
         if channels[-1] != 1:
             msg = 'the neuron count of the last layer ' \
                   'must be 1, but got {}'.format(channels[-1])
-            sys.exit(msg)
+            raise ValueError(msg)
         self.joint_count = joint_count
 
         self.conv_blocks = nn.Sequential()
@@ -205,10 +198,9 @@ class FullPoseDiscriminator(LinearModel):
         if fc_layers[-1] != 1:
             msg = 'the neuron count of the last layer must be 1,' \
                   ' but got {}'.format(fc_layers[-1])
-            sys.exit(msg)
+            raise ValueError(msg)
 
-        super(FullPoseDiscriminator, self).__init__(fc_layers, use_dropout,
-                                                    drop_prob, use_ac_func)
+        super().__init__(fc_layers, use_dropout, drop_prob, use_ac_func)
 
     def forward(self, inputs):
         """Forward function."""
@@ -234,7 +226,7 @@ class SMPLDiscriminator(nn.Module):
                  beta_channel=[10, 5, 1],
                  per_joint_channel=[9, 32, 32, 1],
                  full_pose_channel=[23 * 32, 1024, 1024, 1]):
-        super(SMPLDiscriminator, self).__init__()
+        super().__init__()
         self.beta_count = 10
         self.joint_count = 23
 

@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 import torch
 
 from mmpose.models import MeshHMRHead
@@ -46,6 +47,18 @@ def test_mesh_hmr_head():
     pred_theta = (camera, camera.new_zeros([1, 72]), smpl_shape)
     pred_score = disc(pred_theta)
     assert pred_score.shape[1] == 25
+
+    with pytest.raises(TypeError):
+        _ = SMPLDiscriminator(
+            beta_channel=(10, 10, 5, 1),
+            per_joint_channel=[9, 32, 32, 16, 1],
+            full_pose_channel=[23 * 16, 256, 1])
+
+    with pytest.raises(ValueError):
+        _ = SMPLDiscriminator(
+            beta_channel=[10],
+            per_joint_channel=[9, 32, 32, 16, 1],
+            full_pose_channel=[23 * 16, 256, 1])
 
 
 def _demo_inputs(input_shape=(1, 3, 64, 64)):
