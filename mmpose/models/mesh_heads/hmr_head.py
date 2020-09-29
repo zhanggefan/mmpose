@@ -63,8 +63,14 @@ class MeshHMRHead(nn.Module):
         self.register_buffer('init_cam', init_cam)
 
     def forward(self, x):
-        """Forward function."""
+        """Forward function.
+
+        x is the image feature map and is expected to be in shape (batch size x
+        channel number x height x width)
+        """
         batch_size = x.shape[0]
+        # extract the global feature vector by average along
+        # spatial dimension.
         x = x.mean(dim=-1).mean(dim=-1)
 
         init_pose = self.init_pose.expand(batch_size, -1)

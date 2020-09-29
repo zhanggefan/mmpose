@@ -11,116 +11,115 @@ import torch.nn as nn
 from .geometric_layers import batch_rodrigues
 
 
-class LinearModel(nn.Module):
+class BaseDiscriminator(nn.Module):
     """Base linear module for SMPL parameter discriminator.
 
     Args:
-        fc_layers (List): List of neuron count,
-            such as [9, 32, 32, 1]
-        use_dropout (List): List of bool define use dropout or not
-            for each layer, such as [True, True, False]
-        drop_prob (List): List of float defined the drop prob,
-            such as [0.5, 0.5, 0]
-        use_ac_func(List): List of bool define use active function
-            or not, such as [True, True, False]
+        fc_layers (Tuple): Tuple of neuron count,
+            such as (9, 32, 32, 1)
+        use_dropout (Tuple): Tuple of bool define use dropout or not
+            for each layer, such as (True, True, False)
+        drop_prob (Tuple): Tuple of float defined the drop prob,
+            such as (0.5, 0.5, 0)
+        use_activation(Tuple): Tuple of bool define use active function
+            or not, such as (True, True, False)
     """
 
-    def __init__(self, fc_layers, use_dropout, drop_prob, use_ac_func):
+    def __init__(self, fc_layers, use_dropout, drop_prob, use_activation):
         super().__init__()
         self.fc_layers = fc_layers
         self.use_dropout = use_dropout
         self.drop_prob = drop_prob
-        self.use_ac_func = use_ac_func
-
-        if not self._check():
-            msg = 'Wrong LinearModel parameters!'
-            raise ValueError(msg)
-
+        self.use_activation = use_activation
+        self._check()
         self.create_layers()
 
     def _check(self):
         """Check input to avoid ValueError."""
-        if not isinstance(self.fc_layers, list):
+        if not isinstance(self.fc_layers, tuple):
+            raise TypeError(f'fc_layers require tuple, '
+                            f'get {type(self.fc_layers)}')
 
-            raise TypeError('fc_layers require list, get {}'.format(
-                type(self.fc_layers)))
+        if not isinstance(self.use_dropout, tuple):
+            raise TypeError(f'use_dropout require tuple, '
+                            f'get {type(self.use_dropout)}')
 
-        if not isinstance(self.use_dropout, list):
-            raise TypeError('use_dropout require list, get {}'.format(
-                type(self.use_dropout)))
+        if not isinstance(self.drop_prob, tuple):
+            raise TypeError(f'drop_prob require tuple, '
+                            f'get {type(self.drop_prob)}')
 
-        if not isinstance(self.drop_prob, list):
-            raise TypeError('drop_prob require list, get {}'.format(
-                type(self.drop_prob)))
-
-        if not isinstance(self.use_ac_func, list):
-            raise TypeError('use_ac_func require list, get {}'.format(
-                type(self.use_ac_func)))
+        if not isinstance(self.use_activation, tuple):
+            raise TypeError(f'use_activation require tuple, '
+                            f'get {type(self.use_activation)}')
 
         l_fc_layer = len(self.fc_layers)
         l_use_drop = len(self.use_dropout)
-        l_drop_porb = len(self.drop_prob)
-        l_use_ac_func = len(self.use_ac_func)
+        l_drop_prob = len(self.drop_prob)
+        l_use_activation = len(self.use_activation)
 
-        return l_fc_layer >= 2 and \
+        pass_check = \
+            l_fc_layer >= 2 and \
             l_use_drop < l_fc_layer and \
-            l_drop_porb < l_fc_layer and \
-            l_use_ac_func < l_fc_layer and \
-            l_drop_porb == l_use_drop
+            l_drop_prob < l_fc_layer and \
+            l_use_activation < l_fc_layer and \
+            l_drop_prob == l_use_drop
+
+        if not pass_check:
+            msg = 'Wrong BaseDiscriminator parameters!'
+            raise ValueError(msg)
 
     def create_layers(self):
         """Create layers."""
         l_fc_layer = len(self.fc_layers)
         l_use_drop = len(self.use_dropout)
-        # l_drop_porb = len(self.drop_prob)
-        l_use_ac_func = len(self.use_ac_func)
+        l_use_activation = len(self.use_activation)
 
         self.fc_blocks = nn.Sequential()
 
-        for _ in range(l_fc_layer - 1):
+        for i in range(l_fc_layer - 1):
             self.fc_blocks.add_module(
-                name='regressor_fc_{}'.format(_),
+                name=f'regressor_fc_{i}',
                 module=nn.Linear(
-                    in_features=self.fc_layers[_],
-                    out_features=self.fc_layers[_ + 1]))
+                    in_features=self.fc_layers[i],
+                    out_features=self.fc_layers[i + 1]))
 
-            if _ < l_use_ac_func and self.use_ac_func[_]:
+            if i < l_use_activation and self.use_activation[i]:
                 self.fc_blocks.add_module(
-                    name='regressor_af_{}'.format(_), module=nn.ReLU())
+                    name=f'regressor_af_{i}', module=nn.ReLU())
 
-            if _ < l_use_drop and self.use_dropout[_]:
+            if i < l_use_drop and self.use_dropout[i]:
                 self.fc_blocks.add_module(
-                    name='regressor_fc_dropout_{}'.format(_),
-                    module=nn.Dropout(p=self.drop_prob[_]))
+                    name=f'regressor_fc_dropout_{i}',
+                    module=nn.Dropout(p=self.drop_prob[i]))
 
     @abstractmethod
     def forward(self, inputs):
         """Forward function."""
-        msg = 'the base class [LinearModel] is not callable!'
+        msg = 'the base class [BaseDiscriminator] is not callable!'
         raise NotImplementedError(msg)
 
 
-class ShapeDiscriminator(LinearModel):
-    """
-    Discriminator for SMPL shape parameters, the inputs is (batch size x 10)
+class ShapeDiscriminator(BaseDiscriminator):
+    """Discriminator for SMPL shape parameters, the inputs is (batch size x 10)
+
     Args:
-        fc_layers (List): List of neuron count,
-         such as [10, 5, 1]
-        use_dropout (List): List of bool define use dropout or
-            not for each layer, such as [True, True, False]
-        drop_prob (List): List of float defined the drop prob,
-            such as [0.5, 0]
-        use_ac_func(List): List of bool define use active
-            function or not, such as [True, False]
+        fc_layers (Tuple): Tuple of neuron count,
+         such as (10, 5, 1)
+        use_dropout (Tuple): Tuple of bool define use dropout or
+            not for each layer, such as (True, True, False)
+        drop_prob (Tuple): Tuple of float defined the drop prob,
+            such as (0.5, 0)
+        use_activation(Tuple): Tuple of bool define use active
+            function or not, such as (True, False)
     """
 
-    def __init__(self, fc_layers, use_dropout, drop_prob, use_ac_func):
+    def __init__(self, fc_layers, use_dropout, drop_prob, use_activation):
         if fc_layers[-1] != 1:
-            msg = 'the neuron count of the last layer' \
-                  ' must be 1, but got {}'.format(fc_layers[-1])
+            msg = f'the neuron count of the last layer ' \
+                  f'must be 1, but got {fc_layers[-1]}'
             raise ValueError(msg)
 
-        super().__init__(fc_layers, use_dropout, drop_prob, use_ac_func)
+        super().__init__(fc_layers, use_dropout, drop_prob, use_activation)
 
     def forward(self, inputs):
         """Forward function."""
@@ -133,16 +132,16 @@ class PoseDiscriminator(nn.Module):
     9)
 
     Args:
-        channels (List): List of channel number,
-            such as [9, 32, 32, 1]
+        channels (Tuple): Tuple of channel number,
+            such as (9, 32, 32, 1)
         joint_count (int): Joint number, such as 23
     """
 
     def __init__(self, channels, joint_count):
         super().__init__()
         if channels[-1] != 1:
-            msg = 'the neuron count of the last layer ' \
-                  'must be 1, but got {}'.format(channels[-1])
+            msg = f'the neuron count of the last layer ' \
+                  f'must be 1, but got {channels[-1]}'
             raise ValueError(msg)
         self.joint_count = joint_count
 
@@ -150,7 +149,7 @@ class PoseDiscriminator(nn.Module):
         len_channels = len(channels)
         for idx in range(len_channels - 2):
             self.conv_blocks.add_module(
-                name='conv_{}'.format(idx),
+                name=f'conv_{idx}',
                 module=nn.Conv2d(
                     in_channels=channels[idx],
                     out_channels=channels[idx + 1],
@@ -168,7 +167,6 @@ class PoseDiscriminator(nn.Module):
 
         The input is (batch size x joint_count x 9)
         """
-        # batch_size = inputs.shape[0]
         inputs = inputs.transpose(1, 2).\
             unsqueeze(2).contiguous()  # to N x 9 x 1 x joint_count
         internal_outputs = self.conv_blocks(
@@ -180,27 +178,27 @@ class PoseDiscriminator(nn.Module):
         return torch.cat(outputs, 1), internal_outputs
 
 
-class FullPoseDiscriminator(LinearModel):
+class FullPoseDiscriminator(BaseDiscriminator):
     """Discriminator for SMPL pose parameters of all joints.
 
     Args:
-        fc_layers (List): List of neuron count,
-         such as [736, 1024, 1024, 1]
-        use_dropout (List): List of bool define use dropout or not
-         for each layer, such as [True, True, False]
-        drop_prob (List): List of float defined the drop prob,
-         such as [0.5, 0.5, 0]
-        use_ac_func(List): List of bool define use active
-         function or not, such as [True, True, False]
+        fc_layers (Tuple): Tuple of neuron count,
+         such as (736, 1024, 1024, 1)
+        use_dropout (Tuple): Tuple of bool define use dropout or not
+         for each layer, such as (True, True, False)
+        drop_prob (Tuple): Tuple of float defined the drop prob,
+         such as (0.5, 0.5, 0)
+        use_activation(Tuple): Tuple of bool define use active
+         function or not, such as (True, True, False)
     """
 
-    def __init__(self, fc_layers, use_dropout, drop_prob, use_ac_func):
+    def __init__(self, fc_layers, use_dropout, drop_prob, use_activation):
         if fc_layers[-1] != 1:
-            msg = 'the neuron count of the last layer must be 1,' \
-                  ' but got {}'.format(fc_layers[-1])
+            msg = f'the neuron count of the last layer must be 1,' \
+                  f' but got {fc_layers[-1]}'
             raise ValueError(msg)
 
-        super().__init__(fc_layers, use_dropout, drop_prob, use_ac_func)
+        super().__init__(fc_layers, use_dropout, drop_prob, use_activation)
 
     def forward(self, inputs):
         """Forward function."""
@@ -214,23 +212,24 @@ class SMPLDiscriminator(nn.Module):
     each joint.
 
     Args:
-        beta_channel (list of int): List of neuron count of the
-            discriminator of shape parameters. Defaults to [10, 5, 1]
-        per_joint_channel (list of int): List of neuron count of the
-            discriminator of each joint. Defaults to [9, 32, 32, 1]
-        full_pose_channel (list of int): List of neuron count of the
-            discriminator of full pose. Defaults to [23*32, 1024, 1024, 1]
+        beta_channel (tuple of int): Tuple of neuron count of the
+            discriminator of shape parameters. Defaults to (10, 5, 1)
+        per_joint_channel (tuple of int): Tuple of neuron count of the
+            discriminator of each joint. Defaults to (9, 32, 32, 1)
+        full_pose_channel (tuple of int): Tuple of neuron count of the
+            discriminator of full pose. Defaults to (23*32, 1024, 1024, 1)
     """
 
     def __init__(self,
-                 beta_channel=[10, 5, 1],
-                 per_joint_channel=[9, 32, 32, 1],
-                 full_pose_channel=[23 * 32, 1024, 1024, 1]):
+                 beta_channel=(10, 5, 1),
+                 per_joint_channel=(9, 32, 32, 1),
+                 full_pose_channel=(23 * 32, 1024, 1024, 1)):
         super().__init__()
-        self.beta_count = 10
         self.joint_count = 23
-
-        assert self.beta_count == beta_channel[0]
+        # The count of SMPL shape parameter is 10.
+        assert beta_channel[0] == 10
+        # Use 3 x 3 rotation matrix as the pose parameters
+        # of each joint, so the input channel is 9.
         assert per_joint_channel[0] == 9
         assert self.joint_count * per_joint_channel[-2] \
             == full_pose_channel[0]
@@ -249,21 +248,21 @@ class SMPLDiscriminator(nn.Module):
 
         # create full pose discriminator for total joints
         fc_layers = self.full_pose_channel
-        use_dropout = [False] * (len(fc_layers) - 1)
-        drop_prob = [0.5] * (len(fc_layers) - 1)
-        use_ac_func = [True] * (len(fc_layers) - 2) + [False]
+        use_dropout = tuple([False] * (len(fc_layers) - 1))
+        drop_prob = tuple([0.5] * (len(fc_layers) - 1))
+        use_activation = tuple([True] * (len(fc_layers) - 2) + [False])
 
         self.full_pose_discriminator = FullPoseDiscriminator(
-            fc_layers, use_dropout, drop_prob, use_ac_func)
+            fc_layers, use_dropout, drop_prob, use_activation)
 
         # create shape discriminator for betas
         fc_layers = self.beta_channel
-        use_dropout = [False] * (len(fc_layers) - 1)
-        drop_prob = [0.5] * (len(fc_layers) - 1)
-        use_ac_func = [True] * (len(fc_layers) - 2) + [False]
+        use_dropout = tuple([False] * (len(fc_layers) - 1))
+        drop_prob = tuple([0.5] * (len(fc_layers) - 1))
+        use_activation = tuple([True] * (len(fc_layers) - 2) + [False])
         self.shape_discriminator = ShapeDiscriminator(fc_layers, use_dropout,
-                                                      drop_prob, use_ac_func)
-        # print('finished create the discriminator modules...')
+                                                      drop_prob,
+                                                      use_activation)
 
     def forward(self, thetas):
         """Forward function."""

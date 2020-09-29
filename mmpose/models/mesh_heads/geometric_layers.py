@@ -29,8 +29,8 @@ def batch_rodrigues(theta):
         Rotation matrix corresponding to the quaternion
             -- size = [B, 3, 3]
     """
-    l1norm = torch.norm(theta + 1e-8, p=2, dim=1)
-    angle = torch.unsqueeze(l1norm, -1)
+    l2norm = torch.norm(theta + 1e-8, p=2, dim=1)
+    angle = torch.unsqueeze(l2norm, -1)
     normalized = torch.div(theta, angle)
     angle = angle * 0.5
     v_cos = torch.cos(angle)
