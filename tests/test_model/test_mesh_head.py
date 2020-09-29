@@ -33,7 +33,10 @@ def test_mesh_hmr_head():
 
     # test discriminator with SMPL pose parameters
     # in rotation matrix representation
-    disc = SMPLDiscriminator()
+    disc = SMPLDiscriminator(
+        beta_channel=[10, 10, 5, 1],
+        per_joint_channel=[9, 32, 32, 16, 1],
+        full_pose_channel=[23 * 16, 256, 1])
     pred_theta = (camera, smpl_rotmat, smpl_shape)
     pred_score = disc(pred_theta)
     assert pred_score.shape[1] == 25
