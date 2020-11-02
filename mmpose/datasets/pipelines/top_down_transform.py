@@ -149,7 +149,10 @@ class TopDownGetRandomScaleRotation():
         sf = self.scale_factor
         rf = self.rot_factor
 
-        s_factor = np.clip(np.random.randn() * sf + 1, 1 - sf, 1 + sf)
+        if isinstance(sf, tuple):
+            s_factor = np.clip(np.random.randn() * (sf[1] - sf[0]) + sf[0] + 1, 1 + sf[0], 1 + sf[1])
+        else:
+            s_factor = np.clip(np.random.randn() * sf + 1, 1 - sf, 1 + sf)
         s = s * s_factor
 
         r_factor = np.clip(np.random.randn() * rf, -rf * 2, rf * 2)
