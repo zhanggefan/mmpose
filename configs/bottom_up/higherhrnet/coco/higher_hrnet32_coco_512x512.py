@@ -59,8 +59,8 @@ model = dict(
                 num_modules=1,
                 num_branches=1,
                 block='BOTTLENECK',
-                num_blocks=(4, ),
-                num_channels=(64, )),
+                num_blocks=(4,),
+                num_channels=(64,)),
             stage2=dict(
                 num_modules=1,
                 num_branches=2,
@@ -113,7 +113,7 @@ model = dict(
         refine=True,
         flip_test=True),
     loss_pose=dict(
-        type='MultiLossFactory',
+        type='PAFAEMultiLossFactory',
         num_joints=17,
         num_stages=2,
         ae_loss_type='exp',
@@ -122,6 +122,9 @@ model = dict(
         pull_loss_factor=[0.001, 0.001],
         with_heatmaps_loss=[True, True],
         heatmaps_loss_factor=[1.0, 1.0],
+        with_paf_loss=[True, False],
+        paf_linkage=[[(1, 2), (1, 3)], None],
+        paf_loss_factor=[0.001, 0.001],
     ),
 )
 
@@ -140,7 +143,7 @@ train_pipeline = [
         mean=[0.485, 0.456, 0.406],
         std=[0.229, 0.224, 0.225]),
     dict(
-        type='BottomUpGenerateTarget',
+        type='UnbiasBottomUpGenerateTarget',
         sigma=2,
         max_num_people=30,
     ),
@@ -177,8 +180,8 @@ test_pipeline = val_pipeline
 
 data_root = 'data/coco'
 data = dict(
-    samples_per_gpu=24,
-    workers_per_gpu=2,
+    samples_per_gpu=4,
+    workers_per_gpu=0,
     train=dict(
         type='BottomUpCocoDataset',
         ann_file=f'{data_root}/annotations/person_keypoints_train2017.json',

@@ -183,23 +183,30 @@ class BottomUpCocoDataset(BottomUpBaseDataset):
         coco = self.coco
         img_info = coco.loadImgs(self.img_ids[idx])[0]
 
-        m = np.zeros((img_info['height'], img_info['width']), dtype=np.float32)
+        maskMiss = np.zeros((img_info['height'], img_info['width']), dtype=np.uint8)
+        maskOK = np.zeros((img_info['height'], img_info['width']), dtype=np.uint8)
 
         for obj in anno:
             if 'segmentation' in obj:
-                if obj['iscrowd']:
-                    rle = xtcocotools.mask.frPyObjects(obj['segmentation'],
-                                                       img_info['height'],
-                                                       img_info['width'])
-                    m += xtcocotools.mask.decode(rle)
-                elif obj['num_keypoints'] == 0:
-                    rles = xtcocotools.mask.frPyObjects(
-                        obj['segmentation'], img_info['height'],
-                        img_info['width'])
-                    for rle in rles:
-                        m += xtcocotools.mask.decode(rle)
+                # seg = np.zeros((img_info['height'], img_info['width']), dtype=np.uint8)
+                # rles = xtcocotools.mask.frPyObjects(
+                #     obj['segmentation'], img_info['height'],
+                #     img_info['width'])
+                # for rle in rles:
+                #     seg = np.logical_or(seg, xtcocotools.mask.decode(rle))
+                seg = coco.annToMask(obj)
 
-        return m < 0.5
+                if obj['iscrowd']:
+                    maskMiss = np.logical_or(maskMiss, seg)
+                else:
+                    if obj['num_keypoints'] == 0:
+                        maskMiss = np.logical_or(maskMiss, seg)
+                    else:
+                        maskOK = np.logical_or(maskOK, seg)
+
+        maskMiss = np.logical_and(maskMiss, np.logical_not(maskOK))
+
+        return np.logical_not(maskMiss)
 
     def evaluate(self, outputs, res_folder, metric='mAP', **kwargs):
         """Evaluate coco keypoint results. The pose prediction results will be

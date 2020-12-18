@@ -232,11 +232,15 @@ def _taylor(heatmap, coord):
             heatmap[py - 2 * 1][px])
         derivative = np.array([[dx], [dy]])
         hessian = np.array([[dxx, dxy], [dxy, dyy]])
-        if dxx * dyy - dxy**2 != 0:
-            hessianinv = np.linalg.inv(hessian)
-            offset = -hessianinv @ derivative
-            offset = np.squeeze(np.array(offset.T), axis=0)
-            coord += offset
+        # if dxx * dyy - dxy**2 != 0:
+        #     hessianinv = np.linalg.inv(hessian)
+        #     offset = -hessianinv @ derivative
+        #     offset = np.squeeze(np.array(offset.T), axis=0)
+        #     coord += offset
+        hessian_det = dxx * dyy - dxy * dxy
+        if hessian_det != 0:
+            coord[0] -= (dyy * dx - dxy * dy) / hessian_det
+            coord[1] -= (-dxy * dx + dxx * dy) / hessian_det
     return coord
 
 
@@ -278,7 +282,7 @@ def _gaussian_blur(heatmaps, kernel=11):
             dr[border:-border, border:-border] = heatmaps[i, j].copy()
             dr = cv2.GaussianBlur(dr, (kernel, kernel), 0)
             heatmaps[i, j] = dr[border:-border, border:-border].copy()
-            heatmaps[i, j] *= origin_max / np.max(heatmaps[i, j])
+            # heatmaps[i, j] *= origin_max / np.max(heatmaps[i, j])
     return heatmaps
 
 

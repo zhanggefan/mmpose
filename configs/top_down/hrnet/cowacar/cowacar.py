@@ -76,7 +76,7 @@ model = dict(
     ),
     train_cfg=dict(),
     test_cfg=dict(
-        flip_test=True,
+        flip_test=False,
         post_process=True,
         shift_heatmap=True,
         unbiased_decoding=True,
@@ -109,15 +109,14 @@ train_pipeline = [
     #     type='TopDownHalfBodyTransform',
     #     num_joints_half_body=3,
     #     prob_half_body=0.3),
-    dict(
-        type='TopDownGetRandomScaleRotation', rot_factor=22.5, scale_factor=(0.0, 0.25)),
+    dict(type='TopDownGetRandomScaleRotation', rot_factor=22.5, scale_factor=(0.0, 0.25)),
     dict(type='TopDownAffine'),
     dict(type='ToTensor'),
     dict(
         type='NormalizeTensor',
         mean=[0, 0, 0],
         std=[1, 1, 1]),
-    dict(type='TopDownGenerateTarget', sigma=1),
+    dict(type='TopDownGenerateTarget', sigma=1, unbiased_encoding=True),
     dict(
         type='Collect',
         keys=['img', 'target', 'target_weight'],
@@ -128,7 +127,8 @@ train_pipeline = [
 ]
 
 val_pipeline = [
-    dict(type='LoadImageFromFile'),
+    dict(type='TopDownGetRandomScaleRotation', rot_factor=0., scale_factor=(0.0, 0.0)),
+    dict(type='LoadImageFromFile', channel_order='bgr'),
     dict(type='TopDownAffine'),
     dict(type='ToTensor'),
     dict(
@@ -151,7 +151,7 @@ test_pipeline = val_pipeline
 data_root = 'data/cowacar'
 data = dict(
     samples_per_gpu=64,
-    workers_per_gpu=10,
+    workers_per_gpu=8,
     train=
     dict(
         type='RepeatDataset',

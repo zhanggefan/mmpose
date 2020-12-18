@@ -179,6 +179,9 @@ class TopDownAffine():
         img = results['img']
         joints_3d = results['joints_3d']
         joints_3d_visible = results['joints_3d_visible']
+
+        # add offset to lower
+        results['center'][1] += results['scale'][1] * 200 * 0.05
         c = results['center']
         s = results['scale']
         r = results['rotation']
@@ -257,7 +260,7 @@ class TopDownGenerateTarget():
                 ul = [mu_x - tmp_size, mu_y - tmp_size]
                 br = [mu_x + tmp_size + 1, mu_y + tmp_size + 1]
                 if ul[0] >= heatmap_size[0] or ul[1] >= heatmap_size[1] or br[
-                        0] < 0 or br[1] < 0:
+                    0] < 0 or br[1] < 0:
                     target_weight[joint_id] = 0
 
                 if target_weight[joint_id] == 0:
@@ -269,7 +272,7 @@ class TopDownGenerateTarget():
 
                 if target_weight[joint_id] > 0.5:
                     target[joint_id] = np.exp(
-                        -((x - mu_x)**2 + (y - mu_y)**2) / (2 * self.sigma**2))
+                        -((x - mu_x) ** 2 + (y - mu_y) ** 2) / (2 * self.sigma ** 2))
         else:
             for joint_id in range(num_joints):
                 heatmap_vis = joints_3d_visible[joint_id, 0]
@@ -282,7 +285,7 @@ class TopDownGenerateTarget():
                 ul = [int(mu_x - tmp_size), int(mu_y - tmp_size)]
                 br = [int(mu_x + tmp_size + 1), int(mu_y + tmp_size + 1)]
                 if ul[0] >= heatmap_size[0] or ul[1] >= heatmap_size[1] or br[
-                        0] < 0 or br[1] < 0:
+                    0] < 0 or br[1] < 0:
                     target_weight[joint_id] = 0
 
                 if target_weight[joint_id] > 0.5:
@@ -292,8 +295,8 @@ class TopDownGenerateTarget():
                     x0 = y0 = size // 2
                     # The gaussian is not normalized,
                     # we want the center value to equal 1
-                    g = np.exp(-((x - x0)**2 + (y - y0)**2) /
-                               (2 * self.sigma**2))
+                    g = np.exp(-((x - x0) ** 2 + (y - y0) ** 2) /
+                               (2 * self.sigma ** 2))
 
                     # Usable gaussian range
                     g_x = max(0, -ul[0]), min(br[0], heatmap_size[0]) - ul[0]

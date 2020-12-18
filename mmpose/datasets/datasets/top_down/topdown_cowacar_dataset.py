@@ -178,6 +178,6 @@ class TopDownCowaCarDataset(TopDownCocoDataset):
         # pixel std is 200.0
         scale = np.array([w / 200.0, h / 200.0], dtype=np.float32)
 
-        # scale = scale * 1.25
+        scale = scale * 1.1
 
         return center, scale
