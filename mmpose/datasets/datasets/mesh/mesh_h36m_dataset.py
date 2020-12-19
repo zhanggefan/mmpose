@@ -4,8 +4,8 @@ from collections import OrderedDict
 import json_tricks as json
 import numpy as np
 
+from mmpose.core.evaluation import compute_similarity_transform
 from mmpose.datasets.builder import DATASETS
-from ....core.evaluation import compute_similarity_transform
 from .mesh_base_dataset import MeshBaseDataset
 
 
@@ -52,7 +52,8 @@ class MeshH36MDataset(MeshBaseDataset):
         name_value = OrderedDict(info_str)
         return name_value
 
-    def _write_keypoint_results(self, keypoints, res_file):
+    @staticmethod
+    def _write_keypoint_results(keypoints, res_file):
         """Write results into a json file."""
 
         with open(res_file, 'w') as f:
@@ -87,11 +88,12 @@ class MeshH36MDataset(MeshBaseDataset):
         info_str.append(('MPJPE-PA', mpjpe_pa * 1000))
         return info_str
 
-    def evaluate_kernel(self, pred_joints_3d, joints_3d, joints_3d_visible):
+    @staticmethod
+    def evaluate_kernel(pred_joints_3d, joints_3d, joints_3d_visible):
         """Evaluate one example."""
         # Only 14 lsp joints are used for evaluation
         joint_mapper = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18]
-        assert (joints_3d_visible[joint_mapper].min() > 0)
+        assert joints_3d_visible[joint_mapper].min() > 0
 
         pred_joints_3d = np.array(pred_joints_3d)
         pred_joints_3d = pred_joints_3d[joint_mapper, :]

@@ -12,13 +12,20 @@ MMPose supported datasets:
 - [AI Challenger](https://github.com/AIChallenger/AI_Challenger_2017)
 - [OCHuman](https://github.com/liruilong940607/OCHumanApi)
 - [CrowdPose](https://github.com/Jeff-sjtu/CrowdPose)
+- [sub-JHMDB](http://jhmdb.is.tue.mpg.de/dataset)
 - [OneHand10K](https://www.yangangwang.com/papers/WANG-MCC-2018-10.html)
 - [FreiHand](https://lmb.informatik.uni-freiburg.de/projects/freihand/)
 - [CMU Panoptic HandDB](http://domedb.perception.cs.cmu.edu/handdb.html)
+- [InterHand2.6M](https://mks0601.github.io/InterHand2.6M/)
+- [Human3.6M](http://vision.imar.ro/human3.6m/description.php)
+- [MPI-INF-3DHP](http://gvv.mpi-inf.mpg.de/3dhp-dataset/)
+- [LSP](https://sam.johnson.io/research/lsp.html)
+- [LSPET](https://sam.johnson.io/research/lspet.html)
 
 ## COCO
 
 For COCO data, please download from [COCO download](http://cocodataset.org/#download), 2017 Train/Val is needed for COCO keypoints training and validation.
+2014 Train is needed for human mesh estimation training.
 [HRNet-Human-Pose-Estimation](https://github.com/HRNet/HRNet-Human-Pose-Estimation) provides person detection result of COCO val2017 to reproduce our multi-person pose estimation results. Please download from [OneDrive](https://1drv.ms/f/s!AhIXJn_J-blWzzDXoz5BeFl8sWM-).
 Download and extract them under $MMPOSE/data, and make them look like this:
 
@@ -36,6 +43,11 @@ mmpose
         │   |-- person_keypoints_val2017.json
         |-- person_detection_results
         |   |-- COCO_val2017_detections_AP_H_56_person.json
+        │-- train2014
+        │   ├── COCO_train2014_000000000009.jpg
+        │   ├── COCO_train2014_000000000025.jpg
+        │   ├── COCO_train2014_000000000030.jpg
+            │-- ...
         │-- train2017
         │   │-- 000000000009.jpg
         │   │-- 000000000025.jpg
@@ -206,6 +218,80 @@ mmpose
             │-- ...
 ```
 
+## PoseTrack18
+
+For PoseTrack18 data, please download from [PoseTrack18](https://posetrack.net/users/download.php).
+Please download the annotation files from [posetrack18_annotations](https://download.openmmlab.com/mmpose/datasets/posetrack18_annotations.tar).
+We have merged the video-wise separated official annotation files into two json files (posetrack18_train & posetrack18_val.json). We also generate the [mask files](https://download.openmmlab.com/mmpose/datasets/posetrack18_mask.tar) to speed up training.
+For top-down approaches, we use [MMDetection](https://github.com/open-mmlab/mmdetection) pre-trained [Cascade R-CNN](https://download.openmmlab.com/mmdetection/v2.0/cascade_rcnn/cascade_rcnn_x101_64x4d_fpn_20e_coco/cascade_rcnn_x101_64x4d_fpn_20e_coco_20200509_224357-051557b1.pth) (X-101-64x4d-FPN) to generate the detected human bounding boxes.
+Please download and extract them under $MMPOSE/data, and make them look like this:
+
+```
+mmpose
+├── mmpose
+├── docs
+├── tests
+├── tools
+├── configs
+`── data
+    │── posetrack18
+        │-- annotations
+        │   │-- posetrack18_train.json
+        │   │-- posetrack18_val.json
+        │   │-- posetrack18_val_human_detections.json
+        │   │-- train
+        │   │   │-- 000001_bonn_train.json
+        │   │   │-- 000002_bonn_train.json
+        │   │   │-- ...
+        │   │-- val
+        │   │   │-- 000342_mpii_test.json
+        │   │   │-- 000522_mpii_test.json
+        │   │   │-- ...
+        │   `-- test
+        │       │-- 000001_mpiinew_test.json
+        │       │-- 000002_mpiinew_test.json
+        │       │-- ...
+        │
+        `-- images
+        │   │-- train
+        │   │   │-- 000001_bonn_train
+        │   │   │   │-- 000000.jpg
+        │   │   │   │-- 000001.jpg
+        │   │   │   │-- ...
+        │   │   │-- ...
+        │   │-- val
+        │   │   │-- 000342_mpii_test
+        │   │   │   │-- 000000.jpg
+        │   │   │   │-- 000001.jpg
+        │   │   │   │-- ...
+        │   │   │-- ...
+        │   `-- test
+        │       │-- 000001_mpiinew_test
+        │       │   │-- 000000.jpg
+        │       │   │-- 000001.jpg
+        │       │   │-- ...
+        │       │-- ...
+        `-- mask
+            │-- train
+            │   │-- 000002_bonn_train
+            │   │   │-- 000000.jpg
+            │   │   │-- 000001.jpg
+            │   │   │-- ...
+            │   │-- ...
+            `-- val
+                │-- 000522_mpii_test
+                │   │-- 000000.jpg
+                │   │-- 000001.jpg
+                │   │-- ...
+                │-- ...
+```
+
+The official evaluation tool for PoseTrack should be installed from GitHub.
+```
+pip install git+https://github.com/svenkreiss/poseval.git
+```
+
+
 ## OCHuman
 
 For OCHuman data, please download the images and annotations from [OCHuman](https://github.com/liruilong940607/OCHumanApi),
@@ -227,6 +313,38 @@ mmpose
             │-- 000001.jpg
             │-- 000002.jpg
             │-- 000003.jpg
+            │-- ...
+
+```
+
+## sub-JHMDB dataset
+
+For sub-JHMDB data, please download the [images]((http://files.is.tue.mpg.de/jhmdb/Rename_Images.tar.gz)) from [JHMDB](http://jhmdb.is.tue.mpg.de/dataset),
+Please download the annotation files from [jhmdb_annotations](https://download.openmmlab.com/mmpose/datasets/jhmdb_annotations.tar).
+Move them under $MMPOSE/data, and make them look like this:
+
+```
+mmpose
+├── mmpose
+├── docs
+├── tests
+├── tools
+├── configs
+`── data
+    │── jhmdb
+        │-- annotations
+        │   │-- Sub1_train.json
+        │   |-- Sub1_test.json
+        │   │-- Sub2_train.json
+        │   |-- Sub2_test.json
+        │   │-- Sub3_train.json
+        │   |-- Sub3_test.json
+        |-- Rename_Images
+            │-- brush_hair
+            │   │--April_09_brush_hair_u_nm_np1_ba_goo_0
+            |   │   │--00001.png
+            |   │   │--00002.png
+            │-- catch
             │-- ...
 
 ```
@@ -329,4 +447,35 @@ mmpose
                 |── 000648952_02_l.jpg
                 |── 000835470_01_l.jpg
                  ...
+```
+
+## InterHand2.6M
+
+For InterHand2.6M, please download from [InterHand2.6M](https://mks0601.github.io/InterHand2.6M/).
+Please download the annotation files from [annotations](https://github.com/facebookresearch/InterHand2.6M/releases/download/v0.0/InterHand2.6M.annotations.5.fps.zip).
+Extract them under {MMPose}/data, and make them look like this:
+
+```
+mmpose
+├── mmpose
+├── docs
+├── tests
+├── tools
+├── configs
+`── data
+    │── interhand2.6m
+        |── annotations
+        |   |── all
+        |   |── human_annot
+        |   |── machine_annot
+        |   |── skeleton.txt
+        |   |── subject.txt
+        |
+        `── images
+        |   |── train
+        |   |   |-- Capture0 ~ Capture26
+        |   |── val
+        |   |   |-- Capture0
+        |   |── test
+        |   |   |-- Capture0 ~ Capture7
 ```

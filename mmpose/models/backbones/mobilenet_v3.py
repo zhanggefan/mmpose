@@ -1,3 +1,4 @@
+import copy
 import logging
 
 import torch.nn as nn
@@ -70,6 +71,8 @@ class MobileNetV3(BaseBackbone):
                  frozen_stages=-1,
                  norm_eval=False,
                  with_cp=False):
+        # Protect mutable default arguments
+        norm_cfg = copy.deepcopy(norm_cfg)
         super().__init__()
         assert arch in self.arch_settings
         for index in out_indices:
@@ -163,8 +166,7 @@ class MobileNetV3(BaseBackbone):
 
         if len(outs) == 1:
             return outs[0]
-        else:
-            return tuple(outs)
+        return tuple(outs)
 
     def _freeze_stages(self):
         if self.frozen_stages >= 0:

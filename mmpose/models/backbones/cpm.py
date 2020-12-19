@@ -1,3 +1,5 @@
+import copy
+
 import torch
 import torch.nn as nn
 from mmcv.cnn import ConvModule, constant_init, normal_init
@@ -75,6 +77,8 @@ class CPM(BaseBackbone):
                  middle_channels=32,
                  num_stages=6,
                  norm_cfg=dict(type='BN', requires_grad=True)):
+        # Protect mutable default arguments
+        norm_cfg = copy.deepcopy(norm_cfg)
         super().__init__()
 
         assert in_channels == 3
@@ -144,7 +148,6 @@ class CPM(BaseBackbone):
                     constant_init(m, 1)
         else:
             raise TypeError('pretrained must be a str or None')
-        pass
 
     def forward(self, x):
         """Model forward function."""

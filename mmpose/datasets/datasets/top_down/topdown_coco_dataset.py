@@ -1,4 +1,5 @@
 import os
+import warnings
 from collections import OrderedDict, defaultdict
 
 import json_tricks as json
@@ -63,13 +64,17 @@ class TopDownCocoDataset(TopDownBaseDataset):
 
         self.use_gt_bbox = data_cfg['use_gt_bbox']
         self.bbox_file = data_cfg['bbox_file']
-        self.image_thr = data_cfg['image_thr']
-
+        self.det_bbox_thr = data_cfg.get('det_bbox_thr', 0.0)
+        if 'image_thr' in data_cfg:
+            warnings.warn(
+                'image_thr is deprecated, '
+                'please use det_bbox_thr instead', DeprecationWarning)
+            self.det_bbox_thr = data_cfg['image_thr']
+        self.use_nms = data_cfg.get('use_nms', True)
         self.soft_nms = data_cfg['soft_nms']
         self.nms_thr = data_cfg['nms_thr']
         self.oks_thr = data_cfg['oks_thr']
         self.vis_thr = data_cfg['vis_thr']
-        self.bbox_thr = data_cfg['bbox_thr']
 
         self.ann_info['flip_pairs'] = [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10],
                                        [11, 12], [13, 14], [15, 16]]
@@ -112,7 +117,8 @@ class TopDownCocoDataset(TopDownBaseDataset):
         print(f'=> num_images: {self.num_images}')
         print(f'=> load {len(self.db)} samples')
 
-    def _get_mapping_id_name(self, imgs):
+    @staticmethod
+    def _get_mapping_id_name(imgs):
         """
         Args:
             imgs (dict): dict of image info.
@@ -170,6 +176,8 @@ class TopDownCocoDataset(TopDownBaseDataset):
         # sanitize bboxes
         valid_objs = []
         for obj in objs:
+            if 'bbox' not in obj:
+                continue
             x, y, w, h = obj['bbox']
             x1 = max(0, x)
             y1 = max(0, y)
@@ -182,7 +190,11 @@ class TopDownCocoDataset(TopDownBaseDataset):
 
         rec = []
         for obj in objs:
+            if 'keypoints' not in obj:
+                continue
             if max(obj['keypoints']) == 0:
+                continue
+            if 'num_keypoints' in obj and obj['num_keypoints'] == 0:
                 continue
             joints_3d = np.zeros((num_joints, 3), dtype=np.float32)
             joints_3d_visible = np.zeros((num_joints, 3), dtype=np.float32)
@@ -198,6 +210,7 @@ class TopDownCocoDataset(TopDownBaseDataset):
                 'image_file': image_file,
                 'center': center,
                 'scale': scale,
+                'bbox': obj['clean_bbox'][:4],
                 'rotation': 0,
                 'joints_3d': joints_3d,
                 'joints_3d_visible': joints_3d_visible,
@@ -261,7 +274,7 @@ class TopDownCocoDataset(TopDownBaseDataset):
             box = det_res['bbox']
             score = det_res['score']
 
-            if score < self.image_thr:
+            if score < self.det_bbox_thr:
                 continue
 
             num_boxes = num_boxes + 1
@@ -274,13 +287,14 @@ class TopDownCocoDataset(TopDownBaseDataset):
                 'center': center,
                 'scale': scale,
                 'rotation': 0,
+                'bbox': box[:4],
                 'bbox_score': score,
                 'dataset': self.dataset_name,
                 'joints_3d': joints_3d,
                 'joints_3d_visible': joints_3d_visible
             })
         print(f'=> Total boxes after filter '
-              f'low score@{self.image_thr}: {num_boxes}')
+              f'low score@{self.det_bbox_thr}: {num_boxes}')
         return kpt_db
 
     def evaluate(self, outputs, res_folder, metric='mAP', **kwargs):
@@ -294,7 +308,7 @@ class TopDownCocoDataset(TopDownBaseDataset):
             heatmap width: W
 
         Args:
-            outputs (list(preds, boxes, image_path, output_heatmap))
+            outputs (list(preds, boxes, image_path, heatmap))
                 :preds (np.ndarray[1,K,3]): The first two dimensions are
                     coordinates, score is the third dimension of the array.
                 :boxes (np.ndarray[1,6]): [center[0], center[1], scale[0]
@@ -302,8 +316,7 @@ class TopDownCocoDataset(TopDownBaseDataset):
                 :image_path (list[str]): For example, [ '/', 'v','a', 'l',
                     '2', '0', '1', '7', '/', '0', '0', '0', '0', '0',
                     '0', '3', '9', '7', '1', '3', '3', '.', 'j', 'p', 'g']
-                :output_heatmap (np.ndarray[N, K, H, W]): model outpus.
-
+                :heatmap (np.ndarray[N, K, H, W]): model output heatmap.
             res_folder (str): Path of directory to save the results.
             metric (str | list[str]): Metric to be performed. Defaults: 'mAP'.
 
@@ -321,7 +334,7 @@ class TopDownCocoDataset(TopDownBaseDataset):
         kpts = defaultdict(list)
         for preds, boxes, image_path, _ in outputs:
             str_image_path = ''.join(image_path)
-            image_id = self.name2id[os.path.basename(str_image_path)]
+            image_id = self.name2id[str_image_path[len(self.img_prefix):]]
 
             kpts[image_id].append({
                 'keypoints': preds[0],
@@ -336,9 +349,9 @@ class TopDownCocoDataset(TopDownBaseDataset):
         num_joints = self.ann_info['num_joints']
         vis_thr = self.vis_thr
         oks_thr = self.oks_thr
-        oks_nmsed_kpts = []
-        for img in kpts.keys():
-            img_kpts = kpts[img]
+        valid_kpts = []
+        for image_id in kpts.keys():
+            img_kpts = kpts[image_id]
             for n_p in img_kpts:
                 box_score = n_p['score']
                 kpt_score = 0
@@ -353,15 +366,14 @@ class TopDownCocoDataset(TopDownBaseDataset):
                 # rescoring
                 n_p['score'] = kpt_score * box_score
 
-            nms = soft_oks_nms if self.soft_nms else oks_nms
-            keep = nms(list(img_kpts), oks_thr, sigmas=self.sigmas)
-
-            if len(keep) == 0:
-                oks_nmsed_kpts.append(img_kpts)
+            if self.use_nms:
+                nms = soft_oks_nms if self.soft_nms else oks_nms
+                keep = nms(list(img_kpts), oks_thr, sigmas=self.sigmas)
+                valid_kpts.append([img_kpts[_keep] for _keep in keep])
             else:
-                oks_nmsed_kpts.append([img_kpts[_keep] for _keep in keep])
+                valid_kpts.append(img_kpts)
 
-        self._write_coco_keypoint_results(oks_nmsed_kpts, res_file)
+        self._write_coco_keypoint_results(valid_kpts, res_file)
 
         info_str = self._do_python_keypoint_eval(res_file)
         name_value = OrderedDict(info_str)

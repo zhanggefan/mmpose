@@ -27,16 +27,6 @@
 | [pose_resnet_152](/configs/top_down/resnet/coco/res152_coco_384x288.py) | 384x288 | 0.750 | 0.908 | 0.821 | 0.800 | 0.942 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res152_coco_384x288-3860d4c9_20200709.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res152_coco_384x288_20200709.log.json) |
 
 
-#### Results on CrowdPose test with [YOLOv3](https://github.com/eriklindernoren/PyTorch-YOLOv3) detector.
-
-| Arch  | Input Size | AP | AP<sup>50</sup> | AP<sup>75</sup> | AR | AR<sup>50</sup> | ckpt | log |
-| :-------------- | :-----------: | :------: | :------: | :------: | :------: | :------: |:------: |:------: |
-| [pose_resnet_50](/configs/top_down/resnet/crowdpose/res50_crowdpose_256x192.py)  | 256x192 | 0.707 | 0.914 | 0.769 | 0.773 | 0.937 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res50_coco_256x192-ec54d7f3_20200709.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res50_coco_256x192_20200709.log.json) |
-| [pose_resnet_101](/configs/top_down/resnet/crowdpose/res101_crowdpose_256x192.py) | 256x192 | 0. | 0. | 0. | 0. | 0. | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res101_coco_256x192-6e6babf0_20200708.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res101_coco_256x192_20200708.log.json) |
-| [pose_resnet_152](/configs/top_down/resnet/crowdpose/res101_crowdpose_320x256.py) | 256x192 | 0. | 0. | 0. | 0. | 0. | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res152_coco_256x192-f6e307c2_20200709.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res152_coco_256x192_20200709.log.json) |
-
-Note: All models are trained on CrowdPose train, validated on CrowdPose val, and tested on CrowdPose test.
-
 #### Results on COCO-WholeBody v1.0 val with detector having human AP of 56.4 on COCO val2017 dataset
 
 | Arch  | Input Size | Body AP | Body AR | Foot AP | Foot AR | Face AP | Face AR  | Hand AP | Hand AR | Whole AP | Whole AR | ckpt | log |
@@ -88,7 +78,7 @@ Following the common setting, the models are trained on COCO train dataset, and 
 | [pose_resnet_152](/configs/top_down/resnet/mpii_trb/res152_mpii_trb_256x256.py)  | 256x256 | 0.897 | 0.868 | 0.879 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res152_mpii_trb_256x256-dd369ce6_20200812.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res152_mpii_trb_256x256_20200812.log.json) |
 
 
-### Results on CrowdPose test with [YOLOv3](https://github.com/eriklindernoren/PyTorch-YOLOv3) human detector.
+#### Results on CrowdPose test with [YOLOv3](https://github.com/eriklindernoren/PyTorch-YOLOv3) human detector.
 
 | Arch  | Input Size | AP | AP<sup>50</sup> | AP<sup>75</sup> | AP (E) | AP (M) | AP (H) | ckpt | log |
 | :----------------- | :-----------: | :------: | :------: | :------: | :------: | :------: |:------: |:------: | :------: |
@@ -97,23 +87,48 @@ Following the common setting, the models are trained on COCO train dataset, and 
 | [pose_resnet_101](/configs/top_down/resnet/crowdpose/res101_crowdpose_320x256.py)  | 320x256 | 0.659 | 0.819 | 0.713 | 0.757 | 0.669 | 0.536 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res101_crowdpose_320x256-7723ede3_20201017.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res101_crowdpose_320x256_20201017.log.json) |
 | [pose_resnet_152](/configs/top_down/resnet/crowdpose/res152_crowdpose_256x192.py)  | 256x192 | 0.653 | 0.815 | 0.710 | 0.751 | 0.665 | 0.526 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res152_crowdpose_256x192-a6507ad0_20201017.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res152_crowdpose_256x192_20201017.log.json) |
 
+#### Results on PoseTrack2018 val with ground-truth bounding boxes.
 
-### 2d Hand Pose Estimation
+| Arch  | Input Size | Head | Shou | Elb | Wri | Hip | Knee | Ankl | Total  | ckpt    | log     |
+| :--- | :--------: | :------: |:------: |:------: |:------: |:------: |:------: | :------: | :------: |:------: |:------: |
+| [pose_resnet_50](/configs/top_down/resnet/posetrack18/res50_posetrack18_256x192.py) | 256x192 | 86.5 | 87.5 | 82.3 | 75.6 | 79.9 | 78.6 | 74.0 | 81.0 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res50_posetrack18_256x192-a62807c7_20201028.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res50_posetrack18_256x192_20201028.log.json) |
 
-#### Results on OneHand10K val set.
+The models are first pre-trained on COCO dataset, and then fine-tuned on PoseTrack18.
 
-| Arch  | Input Size | PCK@0.2 |  AUC  |  EPE  | ckpt    | log     |
-| :--- | :--------: | :------: | :------: | :------: |:------: |:------: |
-| [pose_resnet_50](/configs/top_down/resnet/onehand10k/res50_onehand10k_256x256.py) | 256x256 | 0.985 | 0.536 | 27.3 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res50_onehand10k_256x256-e67998f6_20200813.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res50_onehand10k_256x256_20200813.log.json) |
+#### Results on PoseTrack2018 val with [MMDetection](https://github.com/open-mmlab/mmdetection) pre-trained [Cascade R-CNN](https://download.openmmlab.com/mmdetection/v2.0/cascade_rcnn/cascade_rcnn_x101_64x4d_fpn_20e_coco/cascade_rcnn_x101_64x4d_fpn_20e_coco_20200509_224357-051557b1.pth) (X-101-64x4d-FPN) human detector.
 
-#### Results on FreiHand val set.
+| Arch  | Input Size | Head | Shou | Elb | Wri | Hip | Knee | Ankl | Total  | ckpt    | log     |
+| :--- | :--------: | :------: |:------: |:------: |:------: |:------: |:------: | :------: | :------: |:------: |:------: |
+| [pose_resnet_50](/configs/top_down/resnet/posetrack18/res50_posetrack18_256x192.py) | 256x192 | 78.9 | 81.9 | 77.8 | 70.8 | 75.3 | 73.2 | 66.4 | 75.2 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res50_posetrack18_256x192-a62807c7_20201028.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res50_posetrack18_256x192_20201028.log.json) |
 
-| Arch  | Input Size | PCK@0.2 |  AUC  |  EPE  | ckpt    | log     |
-| :--- | :--------: | :------: | :------: | :------: |:------: |:------: |
-| [pose_resnet_50](/configs/top_down/resnet/freihand/res50_freihand_224x224.py) | 224x224 | 0.985 | 0.536 | 27.3 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res50_freihand_224x224-ff0799bc_20200914.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res50_freihand_224x224_20200914.log.json) |
+The models are first pre-trained on COCO dataset, and then fine-tuned on PoseTrack18.
 
-#### Results on CMU Panoptic (MPII+NZSL val set).
 
-| Arch  | Input Size | PCK@0.2 |  AUC  |  EPE  | ckpt    | log     |
-| :--- | :--------: | :------: | :------: | :------: |:------: |:------: |
-| [pose_resnet_50](/configs/top_down/resnet/panoptic/res50_panoptic_256x256.py) | 224x224 | 0.998 | 0.708 | 9.24 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res50_panoptic_256x256-5f55ca1a_20200925.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res50_panoptic_256x256_20200925.log.json) |
+#### Results on Sub-JHMDB dataset.
+The models are pre-trained on MPII dataset only. *NO* test-time augmentation (multi-scale /rotation testing) is used.
+
+##### Normalized by Person Size
+
+| Split| Arch        | Input Size | Head | Sho  | Elb | Wri | Hip | Knee | Ank | Mean | ckpt    | log     |
+| :--- | :--------:  | :--------: | :---: | :---: |:---: |:---: |:---: |:---:  |:---: | :---: | :-----: |:------: |
+| Sub1 |  [pose_resnet_50](/configs/top_down/resnet/jhmdb/res50_jhmdb_sub1_256x256.py) | 256x256 | 99.1 | 98.0 | 93.8 |  91.3 | 99.4 | 96.5| 92.8 | 96.1 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res50_jhmdb_sub1_256x256-932cb3b4_20201122.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res50_jhmdb_sub1_256x256_20201122.log.json) |
+| Sub2 |  [pose_resnet_50](/configs/top_down/resnet/jhmdb/res50_jhmdb_sub2_256x256.py) | 256x256 | 99.3 | 97.1 | 90.6 |  87.0 | 98.9 | 96.3| 94.1 | 95.0 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res50_jhmdb_sub2_256x256-83d606f7_20201122.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res50_jhmdb_sub2_256x256_20201122.log.json) |
+| Sub3 |  [pose_resnet_50](/configs/top_down/resnet/jhmdb/res50_jhmdb_sub3_256x256.py) | 256x256 | 99.0 | 97.9 | 94.0 |  91.6 | 99.7 | 98.0| 94.7 | 96.7 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res50_jhmdb_sub3_256x256-c4ec1a0b_20201122.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res50_jhmdb_sub3_256x256_20201122.log.json) |
+| Average |  pose_resnet_50                                                            | 256x256 | 99.2 | 97.7 | 92.8 |  90.0 | 99.3 | 96.9| 93.9 | 96.0 | -        | -       |
+| Sub1 |  [pose_resnet_50 (2 Deconv.)](/configs/top_down/resnet/jhmdb/res50_2deconv_jhmdb_sub1_256x256.py) | 256x256 | 99.1 | 98.5 | 94.6 |  92.0 | 99.4 | 94.6| 92.5 | 96.1 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res50_2deconv_jhmdb_sub1_256x256-f0574a52_20201122.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res50_2deconv_jhmdb_sub1_256x256_20201122.log.json) |
+| Sub2 |  [pose_resnet_50 (2 Deconv.)](/configs/top_down/resnet/jhmdb/res50_2deconv_jhmdb_sub2_256x256.py) | 256x256 | 99.3 | 97.8 | 91.0 |  87.0 | 99.1 | 96.5| 93.8 | 95.2 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res50_2deconv_jhmdb_sub2_256x256-f63af0ff_20201122.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res50_2deconv_jhmdb_sub2_256x256_20201122.log.json) |
+| Sub3 |  [pose_resnet_50 (2 Deconv.)](/configs/top_down/resnet/jhmdb/res50_2deconv_jhmdb_sub3_256x256.py) | 256x256 | 98.8 | 98.4 | 94.3 |  92.1 | 99.8 | 97.5| 93.8 | 96.7 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res50_2deconv_jhmdb_sub3_256x256-c4bc2ddb_20201122.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res50_2deconv_jhmdb_sub3_256x256_20201122.log.json) |
+| Average |  pose_resnet_50 (2 Deconv.)                                                                    | 256x256 | 99.1 | 98.2 | 93.3 |  90.4 | 99.4 | 96.2| 93.4 | 96.0 | -        | -       |
+
+##### Normalized by Torso Size
+
+| Split| Arch        | Input Size | Head | Sho  | Elb | Wri | Hip | Knee | Ank | Mean | ckpt    | log     |
+| :--- | :--------:  | :--------: | :---: | :---: |:---: |:---: |:---: |:---:  |:---: | :---: | :-----: |:------: |
+| Sub1 |  [pose_resnet_50](/configs/top_down/resnet/jhmdb/res50_jhmdb_sub1_256x256.py) | 256x256 | 93.3 | 83.2 | 74.4 |  72.7 | 85.0 | 81.2 | 78.9 | 81.9 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res50_jhmdb_sub1_256x256-932cb3b4_20201122.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res50_jhmdb_sub1_256x256_20201122.log.json) |
+| Sub2 |  [pose_resnet_50](/configs/top_down/resnet/jhmdb/res50_jhmdb_sub2_256x256.py) | 256x256 | 94.1 | 74.9 | 64.5 |  62.5 | 77.9 | 71.9 | 78.6 | 75.5 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res50_jhmdb_sub2_256x256-83d606f7_20201122.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res50_jhmdb_sub2_256x256_20201122.log.json) |
+| Sub3 |  [pose_resnet_50](/configs/top_down/resnet/jhmdb/res50_jhmdb_sub3_256x256.py) | 256x256 | 97.0 | 82.2 | 74.9 |  70.7 | 84.7 | 83.7 | 84.2 | 82.9 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res50_jhmdb_sub3_256x256-c4ec1a0b_20201122.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res50_jhmdb_sub3_256x256_20201122.log.json) |
+| Average |  pose_resnet_50                                                            | 256x256 | 94.8 | 80.1 | 71.3 |  68.6 | 82.5 | 78.9 | 80.6 | 80.1 | -        | -       |
+| Sub1 |  [pose_resnet_50 (2 Deconv.)](/configs/top_down/resnet/jhmdb/res50_2deconv_jhmdb_sub1_256x256.py) | 256x256 | 92.4 | 80.6 | 73.2 |  70.5 | 82.3 | 75.4| 75.0 | 79.2 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res50_2deconv_jhmdb_sub1_256x256-f0574a52_20201122.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res50_2deconv_jhmdb_sub1_256x256_20201122.log.json) |
+| Sub2 |  [pose_resnet_50 (2 Deconv.)](/configs/top_down/resnet/jhmdb/res50_2deconv_jhmdb_sub2_256x256.py) | 256x256 | 93.4 | 73.6 | 63.8 |  60.5 | 75.1 | 68.4| 75.5 | 73.7 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res50_2deconv_jhmdb_sub2_256x256-f63af0ff_20201122.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res50_2deconv_jhmdb_sub2_256x256_20201122.log.json) |
+| Sub3 |  [pose_resnet_50 (2 Deconv.)](/configs/top_down/resnet/jhmdb/res50_2deconv_jhmdb_sub3_256x256.py) | 256x256 | 96.1 | 81.2 | 72.6 |  67.9 | 83.6 | 80.9| 81.5 | 81.2 | [ckpt](https://download.openmmlab.com/mmpose/top_down/resnet/res50_2deconv_jhmdb_sub3_256x256-c4bc2ddb_20201122.pth) | [log](https://download.openmmlab.com/mmpose/top_down/resnet/res50_2deconv_jhmdb_sub3_256x256_20201122.log.json) |
+| Average |  pose_resnet_50 (2 Deconv.)                                                                    | 256x256 | 94.0 | 78.5 | 69.9 |  66.3 | 80.3 | 74.9| 77.3 | 78.0 | -        | -       |

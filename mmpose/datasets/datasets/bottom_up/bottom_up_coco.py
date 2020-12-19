@@ -97,7 +97,8 @@ class BottomUpCocoDataset(BottomUpBaseDataset):
 
         print(f'=> num_images: {self.num_images}')
 
-    def _get_mapping_id_name(self, imgs):
+    @staticmethod
+    def _get_mapping_id_name(imgs):
         """
         Args:
             imgs (dict): dict of image info.
@@ -217,7 +218,7 @@ class BottomUpCocoDataset(BottomUpBaseDataset):
             num_keypoints: K
 
         Args:
-            outputs (list(preds, scores, image_path, output_heatmap)):
+            outputs (list(preds, scores, image_path, heatmap)):
 
                 * preds (list[images x np.ndarray(P, K, 3+tag_num)]):
                   Pose predictions for all people in images.
@@ -226,7 +227,7 @@ class BottomUpCocoDataset(BottomUpBaseDataset):
                   '/',i','m','a','g','e','s','/', 'v','a', 'l',
                   '2', '0', '1', '7', '/', '0', '0', '0', '0', '0',
                   '0', '3', '9', '7', '1', '3', '3', '.', 'j', 'p', 'g']
-                * output_heatmap (np.ndarray[N, K, H, W]): model outputs.
+                * heatmap (np.ndarray[N, K, H, W]): model outputs.
 
             res_folder (str): Path of directory to save the results.
             metric (str | list[str]): Metric to be performed. Defaults: 'mAP'.

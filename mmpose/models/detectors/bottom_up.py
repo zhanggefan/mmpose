@@ -45,7 +45,7 @@ class BottomUp(BasePose):
 
         self.train_cfg = train_cfg
         self.test_cfg = test_cfg
-
+        self.use_udp = test_cfg.get('use_udp', False)
         self.parser = HeatmapParser(self.test_cfg)
 
         self.loss = build_loss(loss_pose)
@@ -69,6 +69,7 @@ class BottomUp(BasePose):
                 joints=None,
                 img_metas=None,
                 return_loss=True,
+                return_heatmap=False,
                 **kwargs):
         """Calls either forward_train or forward_test depending on whether
         return_loss is True.
@@ -88,8 +89,6 @@ class BottomUp(BasePose):
                                               heatmaps
             joints(List(torch.Tensor[NxMxKx2])): Joints of multi-scale target
                                                  heatmaps for ae loss
-            return loss(bool): Option to 'return_loss'. 'return_loss=True' for
-                training, 'return_loss=False' for validation & test
             img_metas(dict):Information about val&test
                 By default this includes:
                 - "image_file": image path
@@ -99,17 +98,22 @@ class BottomUp(BasePose):
                 - "center": center of image
                 - "scale": scale of image
                 - "flip_index": flip index of keypoints
+
+            return loss(bool): Option to 'return_loss'. 'return_loss=True' for
+                training, 'return_loss=False' for validation & test
+            return_heatmap (bool) : Option to return heatmap.
+
         Returns:
             dict|tuple: if 'return_loss' is true, then return losses.
-              Otherwise, return predicted poses, scores and image
-              paths.
+              Otherwise, return predicted poses, scores, image
+              paths and heatmaps.
         """
 
         if return_loss:
             return self.forward_train(img, targets, masks, joints, img_metas,
                                       **kwargs)
-        else:
-            return self.forward_test(img, img_metas, **kwargs)
+        return self.forward_test(
+            img, img_metas, return_heatmap=return_heatmap, **kwargs)
 
     def forward_train(self, img, targets, masks, joints, img_metas, **kwargs):
         """Forward the bottom-up model and calculate the loss.
@@ -170,7 +174,23 @@ class BottomUp(BasePose):
         losses['all_loss'] = loss
         return losses
 
-    def forward_test(self, img, img_metas, **kwargs):
+    def forward_dummy(self, img):
+        """Used for computing network FLOPs.
+
+        See ``tools/get_flops.py``.
+
+        Args:
+            img (torch.Tensor): Input image.
+
+        Returns:
+            Tensor: Outputs.
+        """
+        output = self.backbone(img)
+        if self.with_keypoint:
+            output = self.keypoint_head(output)
+        return output
+
+    def forward_test(self, img, img_metas, return_heatmap=False, **kwargs):
         """Inference the bottom-up model.
 
         Note:
@@ -205,25 +225,39 @@ class BottomUp(BasePose):
             image_resized = aug_data[idx].to(img.device)
 
             outputs = self.backbone(image_resized)
-            outputs = self.keypoint_head(outputs)
+            if self.with_keypoint:
+                outputs = self.keypoint_head(outputs)
 
             if self.test_cfg['flip_test']:
                 # use flip test
                 outputs_flip = self.backbone(torch.flip(image_resized, [3]))
-                outputs_flip = self.keypoint_head(outputs_flip)
+                if self.with_keypoint:
+                    outputs_flip = self.keypoint_head(outputs_flip)
             else:
                 outputs_flip = None
 
             _, heatmaps, tags = get_multi_stage_outputs(
-                outputs, outputs_flip, self.test_cfg['num_joints'],
-                self.test_cfg['with_heatmaps'], self.test_cfg['with_ae'],
-                self.test_cfg['tag_per_joint'], img_metas['flip_index'],
-                self.test_cfg['project2image'], base_size)
+                outputs,
+                outputs_flip,
+                self.test_cfg['num_joints'],
+                self.test_cfg['with_heatmaps'],
+                self.test_cfg['with_ae'],
+                self.test_cfg['tag_per_joint'],
+                img_metas['flip_index'],
+                self.test_cfg['project2image'],
+                base_size,
+                align_corners=self.use_udp)
 
             aggregated_heatmaps, tags_list = aggregate_results(
-                s, aggregated_heatmaps, tags_list, heatmaps, tags,
-                test_scale_factor, self.test_cfg['project2image'],
-                self.test_cfg['flip_test'])
+                s,
+                aggregated_heatmaps,
+                tags_list,
+                heatmaps,
+                tags,
+                test_scale_factor,
+                self.test_cfg['project2image'],
+                self.test_cfg['flip_test'],
+                align_corners=self.use_udp)
 
         # average heatmaps of different scales
         aggregated_heatmaps = aggregated_heatmaps / float(
@@ -236,14 +270,19 @@ class BottomUp(BasePose):
                                             self.test_cfg['refine'])
 
         results = get_group_preds(
-            grouped, center, scale,
-            [aggregated_heatmaps.size(3),
-             aggregated_heatmaps.size(2)])
+            grouped,
+            center,
+            scale, [aggregated_heatmaps.size(3),
+                    aggregated_heatmaps.size(2)],
+            use_udp=self.use_udp)
 
         image_path = []
         image_path.extend(img_metas['image_file'])
 
-        output_heatmap = aggregated_heatmaps.detach().cpu().numpy()
+        if return_heatmap:
+            output_heatmap = aggregated_heatmaps.detach().cpu().numpy()
+        else:
+            output_heatmap = None
 
         return results, scores, image_path, output_heatmap
 
@@ -293,7 +332,7 @@ class BottomUp(BasePose):
         for res in result:
             pose_result.append(res['keypoints'])
 
-        for person_id, kpts in enumerate(pose_result):
+        for _, kpts in enumerate(pose_result):
             # draw each point on image
             if pose_kpt_color is not None:
                 assert len(pose_kpt_color) == len(kpts)

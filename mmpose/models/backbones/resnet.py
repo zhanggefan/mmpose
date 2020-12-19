@@ -1,3 +1,5 @@
+import copy
+
 import torch.nn as nn
 import torch.utils.checkpoint as cp
 from mmcv.cnn import (ConvModule, build_conv_layer, build_norm_layer,
@@ -42,6 +44,8 @@ class BasicBlock(nn.Module):
                  with_cp=False,
                  conv_cfg=None,
                  norm_cfg=dict(type='BN')):
+        # Protect mutable default arguments
+        norm_cfg = copy.deepcopy(norm_cfg)
         super().__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -157,6 +161,8 @@ class Bottleneck(nn.Module):
                  with_cp=False,
                  conv_cfg=None,
                  norm_cfg=dict(type='BN')):
+        # Protect mutable default arguments
+        norm_cfg = copy.deepcopy(norm_cfg)
         super().__init__()
         assert style in ['pytorch', 'caffe']
 
@@ -336,6 +342,8 @@ class ResLayer(nn.Sequential):
                  norm_cfg=dict(type='BN'),
                  downsample_first=True,
                  **kwargs):
+        # Protect mutable default arguments
+        norm_cfg = copy.deepcopy(norm_cfg)
         self.block = block
         self.expansion = get_expansion(block, expansion)
 
@@ -376,7 +384,7 @@ class ResLayer(nn.Sequential):
                     norm_cfg=norm_cfg,
                     **kwargs))
             in_channels = out_channels
-            for i in range(1, num_blocks):
+            for _ in range(1, num_blocks):
                 layers.append(
                     block(
                         in_channels=in_channels,
@@ -493,6 +501,8 @@ class ResNet(BaseBackbone):
                  norm_eval=False,
                  with_cp=False,
                  zero_init_residual=True):
+        # Protect mutable default arguments
+        norm_cfg = copy.deepcopy(norm_cfg)
         super().__init__()
         if depth not in self.arch_settings:
             raise KeyError(f'invalid depth {depth} for resnet')
@@ -500,7 +510,7 @@ class ResNet(BaseBackbone):
         self.stem_channels = stem_channels
         self.base_channels = base_channels
         self.num_stages = num_stages
-        assert num_stages >= 1 and num_stages <= 4
+        assert 1 <= num_stages <= 4
         self.strides = strides
         self.dilations = dilations
         assert len(strides) == len(dilations) == num_stages
@@ -663,8 +673,7 @@ class ResNet(BaseBackbone):
                 outs.append(x)
         if len(outs) == 1:
             return outs[0]
-        else:
-            return tuple(outs)
+        return tuple(outs)
 
     def train(self, mode=True):
         """Convert the model into training mode."""

@@ -120,7 +120,8 @@ class BottomUpSimpleHead(nn.Module):
 
         return nn.Sequential(*layers)
 
-    def _get_deconv_cfg(self, deconv_kernel):
+    @staticmethod
+    def _get_deconv_cfg(deconv_kernel):
         """Get configurations for deconv layers."""
         if deconv_kernel == 4:
             padding = 1
@@ -138,7 +139,7 @@ class BottomUpSimpleHead(nn.Module):
 
     def init_weights(self):
         """Initialize model weights."""
-        for name, m in self.deconv_layers.named_modules():
+        for _, m in self.deconv_layers.named_modules():
             if isinstance(m, nn.ConvTranspose2d):
                 normal_init(m, std=0.001)
             elif isinstance(m, nn.BatchNorm2d):

@@ -1,3 +1,4 @@
+import copy
 import logging
 
 import torch
@@ -52,6 +53,9 @@ class ShuffleUnit(nn.Module):
                  norm_cfg=dict(type='BN'),
                  act_cfg=dict(type='ReLU'),
                  with_cp=False):
+        # Protect mutable default arguments
+        norm_cfg = copy.deepcopy(norm_cfg)
+        act_cfg = copy.deepcopy(act_cfg)
         super().__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -184,6 +188,9 @@ class ShuffleNetV1(BaseBackbone):
                  act_cfg=dict(type='ReLU'),
                  norm_eval=False,
                  with_cp=False):
+        # Protect mutable default arguments
+        norm_cfg = copy.deepcopy(norm_cfg)
+        act_cfg = copy.deepcopy(act_cfg)
         super().__init__()
         self.stage_blocks = [4, 8, 4]
         self.groups = groups
@@ -235,7 +242,7 @@ class ShuffleNetV1(BaseBackbone):
 
         self.layers = nn.ModuleList()
         for i, num_blocks in enumerate(self.stage_blocks):
-            first_block = True if i == 0 else False
+            first_block = (i == 0)
             layer = self.make_layer(channels[i], num_blocks, first_block)
             self.layers.append(layer)
 
@@ -310,8 +317,7 @@ class ShuffleNetV1(BaseBackbone):
 
         if len(outs) == 1:
             return outs[0]
-        else:
-            return tuple(outs)
+        return tuple(outs)
 
     def train(self, mode=True):
         super().train(mode)

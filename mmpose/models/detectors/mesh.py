@@ -92,9 +92,9 @@ class ParametricMesh(BasePose):
 
         In this function, the detector will finish the train step following
         the pipeline:
-            1. get fake and real SMPL parameters
-            2. optimize discriminator (if have)
-            3. optimize generator
+        1. get fake and real SMPL parameters
+        2. optimize discriminator (if have)
+        3. optimize generator
 
         If `self.train_cfg.disc_step > 1`, the train step will contain multiple
         iterations for optimizing discriminator with different input data and
@@ -220,6 +220,20 @@ class ParametricMesh(BasePose):
         output = self.forward_test(**data_batch, **kwargs)
         return output
 
+    def forward_dummy(self, img):
+        """Used for computing network FLOPs.
+
+        See ``tools/get_flops.py``.
+
+        Args:
+            img (torch.Tensor): Input image.
+
+        Returns:
+            Tensor: Outputs.
+        """
+        output = self.generator(img)
+        return output
+
     def forward_test(self, img, img_metas, **kwargs):
         """Defines the computation performed at every call when testing."""
         assert img.size(0) == 1
@@ -294,5 +308,4 @@ class ParametricMesh(BasePose):
 
         if return_loss:
             return self.forward_train(img, img_metas, **kwargs)
-        else:
-            return self.forward_test(img, img_metas, **kwargs)
+        return self.forward_test(img, img_metas, **kwargs)

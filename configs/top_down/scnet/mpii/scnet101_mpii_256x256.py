@@ -33,7 +33,8 @@ channel_cfg = dict(
 # model settings
 model = dict(
     type='TopDown',
-    pretrained='models/pytorch/imagenet/scnet101-94250a77.pth',
+    pretrained='https://download.openmmlab.com/mmpose/'
+    'pretrain_models/scnet101-94250a77.pth',
     backbone=dict(type='SCNet', depth=101),
     keypoint_head=dict(
         type='TopDownSimpleHead',
@@ -43,9 +44,8 @@ model = dict(
     train_cfg=dict(),
     test_cfg=dict(
         flip_test=True,
-        post_process=True,
+        post_process='default',
         shift_heatmap=True,
-        unbiased_decoding=False,
         modulate_kernel=11),
     loss_pose=dict(type='JointsMSELoss', use_target_weight=True))
 
@@ -91,9 +91,7 @@ val_pipeline = [
         std=[0.229, 0.224, 0.225]),
     dict(
         type='Collect',
-        keys=[
-            'img',
-        ],
+        keys=['img'],
         meta_keys=['image_file', 'center', 'scale', 'rotation', 'flip_pairs']),
 ]
 

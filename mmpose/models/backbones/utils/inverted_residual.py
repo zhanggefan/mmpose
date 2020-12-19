@@ -1,3 +1,5 @@
+import copy
+
 import torch.nn as nn
 import torch.utils.checkpoint as cp
 from mmcv.cnn import ConvModule
@@ -45,6 +47,9 @@ class InvertedResidual(nn.Module):
                  norm_cfg=dict(type='BN'),
                  act_cfg=dict(type='ReLU'),
                  with_cp=False):
+        # Protect mutable default arguments
+        norm_cfg = copy.deepcopy(norm_cfg)
+        act_cfg = copy.deepcopy(act_cfg)
         super().__init__()
         self.with_res_shortcut = (stride == 1 and in_channels == out_channels)
         assert stride in [1, 2]
@@ -106,8 +111,7 @@ class InvertedResidual(nn.Module):
 
             if self.with_res_shortcut:
                 return x + out
-            else:
-                return out
+            return out
 
         if self.with_cp and x.requires_grad:
             out = cp.checkpoint(_inner_forward, x)

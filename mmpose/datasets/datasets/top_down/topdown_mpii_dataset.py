@@ -20,6 +20,25 @@ class TopDownMpiiDataset(TopDownBaseDataset):
     The dataset loads raw features and apply specified transforms
     to return a dict containing the image tensors and other information.
 
+    MPII keypoint indexes::
+
+        0: 'right_ankle'
+        1: 'right_knee',
+        2: 'right_hip',
+        3: 'left_hip',
+        4: 'left_knee',
+        5: 'left_ankle',
+        6: 'pelvis',
+        7: 'thorax',
+        8: 'upper_neck',
+        9: 'head_top',
+        10: 'right_wrist',
+        11: 'right_elbow',
+        12: 'right_shoulder',
+        13: 'left_shoulder',
+        14: 'left_elbow',
+        15: 'left_wrist'
+
     Args:
         ann_file (str): Path to the annotation file.
         img_prefix (str): Path to a directory where images are held.
@@ -116,8 +135,8 @@ class TopDownMpiiDataset(TopDownBaseDataset):
 
     def evaluate(self, outputs, res_folder, metric='PCKh', **kwargs):
         """Evaluate PCKh for MPII dataset. Adapted from
-        https://github.com/leoxiaobin/deep-high-resolution- net.pytorch
-        Original licence: Copyright (c) Microsoft, under the MIT License.
+        https://github.com/leoxiaobin/deep-high-resolution-net.pytorch
+        Copyright (c) Microsoft, under the MIT License.
 
         Note:
             batch_size: N
@@ -126,7 +145,7 @@ class TopDownMpiiDataset(TopDownBaseDataset):
             heatmap width: W
 
         Args:
-            outputs(list(preds, boxes, image_path, output_heatmap)):
+            outputs(list(preds, boxes, image_path, heatmap)):
 
                 * preds(np.ndarray[1,K,3]): The first two dimensions are
                   coordinates, score is the third dimension of the array.
@@ -134,7 +153,7 @@ class TopDownMpiiDataset(TopDownBaseDataset):
                   , scale[1],area, score]
                 * image_path(list[str]): For example, ['0', '0',
                   '0', '0', '0', '1', '1', '6', '3', '.', 'j', 'p', 'g']
-                * output_heatmap (np.ndarray[N, K, H, W]): model outputs.
+                * heatmap (np.ndarray[N, K, H, W]): model output heatmap.
 
             res_folder(str): Path of directory to save the results.
             metric (str | list[str]): Metrics to be performed.

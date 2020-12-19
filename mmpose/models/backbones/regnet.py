@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 import torch.nn as nn
 from mmcv.cnn import build_conv_layer, build_norm_layer
@@ -98,6 +100,8 @@ class RegNet(ResNet):
                  norm_eval=False,
                  with_cp=False,
                  zero_init_residual=True):
+        # Protect mutable default arguments
+        norm_cfg = copy.deepcopy(norm_cfg)
         super(ResNet, self).__init__()
 
         # Generate RegNet parameters first
@@ -132,7 +136,7 @@ class RegNet(ResNet):
         self.stem_channels = stem_channels
         self.base_channels = base_channels
         self.num_stages = num_stages
-        assert num_stages >= 1 and num_stages <= 4
+        assert 1 <= num_stages <= 4
         self.strides = strides
         self.dilations = dilations
         assert len(strides) == len(dilations) == num_stages
@@ -202,8 +206,8 @@ class RegNet(ResNet):
         self.add_module(self.norm1_name, norm1)
         self.relu = nn.ReLU(inplace=True)
 
-    def generate_regnet(self,
-                        initial_width,
+    @staticmethod
+    def generate_regnet(initial_width,
                         width_slope,
                         width_parameter,
                         depth,
@@ -308,5 +312,4 @@ class RegNet(ResNet):
 
         if len(outs) == 1:
             return outs[0]
-        else:
-            return tuple(outs)
+        return tuple(outs)

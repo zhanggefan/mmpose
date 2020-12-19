@@ -1,3 +1,4 @@
+import copy
 import logging
 
 import torch.nn as nn
@@ -38,6 +39,9 @@ class InvertedResidual(nn.Module):
                  norm_cfg=dict(type='BN'),
                  act_cfg=dict(type='ReLU6'),
                  with_cp=False):
+        # Protect mutable default arguments
+        norm_cfg = copy.deepcopy(norm_cfg)
+        act_cfg = copy.deepcopy(act_cfg)
         super().__init__()
         self.stride = stride
         assert stride in [1, 2], f'stride must in [1, 2]. ' \
@@ -82,8 +86,7 @@ class InvertedResidual(nn.Module):
         def _inner_forward(x):
             if self.use_res_connect:
                 return x + self.conv(x)
-            else:
-                return self.conv(x)
+            return self.conv(x)
 
         if self.with_cp and x.requires_grad:
             out = cp.checkpoint(_inner_forward, x)
@@ -132,6 +135,9 @@ class MobileNetV2(BaseBackbone):
                  act_cfg=dict(type='ReLU6'),
                  norm_eval=False,
                  with_cp=False):
+        # Protect mutable default arguments
+        norm_cfg = copy.deepcopy(norm_cfg)
+        act_cfg = copy.deepcopy(act_cfg)
         super().__init__()
         self.widen_factor = widen_factor
         self.out_indices = out_indices
@@ -247,8 +253,7 @@ class MobileNetV2(BaseBackbone):
 
         if len(outs) == 1:
             return outs[0]
-        else:
-            return tuple(outs)
+        return tuple(outs)
 
     def _freeze_stages(self):
         if self.frozen_stages >= 0:
