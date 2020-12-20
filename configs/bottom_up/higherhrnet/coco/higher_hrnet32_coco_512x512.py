@@ -124,7 +124,7 @@ model = dict(
         with_heatmaps_loss=[True, True],
         heatmaps_loss_factor=[1.0, 1.0],
         with_paf_loss=[True, False],
-        paf_linkage=[[(1, 2), (1, 3)], None],
+        paf_linkage=[[(0, 1), (0, 2), (1, 3), (2, 3), (3, 4)], None],
         paf_loss_factor=[0.001, 0.001],
     ),
 )
@@ -133,7 +133,7 @@ train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(
         type='BottomUpRandomAffine',
-        rot_factor=30,
+        rot_factor=0,
         scale_factor=[0.75, 1.5],
         scale_type='short',
         trans_factor=40),
@@ -179,12 +179,12 @@ test_pipeline = val_pipeline
 
 data_root = 'data/coco'
 data = dict(
-    samples_per_gpu=4,
+    samples_per_gpu=8,
     workers_per_gpu=0,
     train=dict(
         type='BottomUpCocoDataset',
-        ann_file=f'{data_root}/annotations/person_keypoints_train2017.json',
-        img_prefix=f'{data_root}/train2017/',
+        ann_file=f'{data_root}/annotations/person_keypoints_val2017.json',
+        img_prefix=f'{data_root}/val2017/',
         data_cfg=data_cfg,
         pipeline=train_pipeline),
     val=dict(

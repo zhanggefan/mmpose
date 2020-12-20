@@ -154,7 +154,7 @@ class BottomUp(BasePose):
         if self.with_keypoint:
             output = self.keypoint_head(output)
 
-        heatmaps_losses, push_losses, pull_losses = self.loss(
+        heatmaps_losses, push_losses, pull_losses, _ = self.loss(
             output, targets, masks, joints)
 
         losses = dict()
